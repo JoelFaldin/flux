@@ -41,7 +41,7 @@ func Parser(conn net.Conn, cm []string, s *store.Store) {
 		val := cm[2]
 		s.SetValue(key, val)
 
-		conn.Write([]byte("OK"))
+		conn.Write([]byte("OK\r\n"))
 		return
 	}
 
@@ -74,9 +74,12 @@ func Parser(conn net.Conn, cm []string, s *store.Store) {
 		}
 
 		key := cm[1]
-		s.DeleteValue(key)
+		before, _, _ := strings.Cut(key, "\r\n")
+		format := before
 
-		conn.Write([]byte("OK"))
+		s.DeleteValue(format)
+
+		conn.Write([]byte("OK\r\n"))
 	}
 }
 
@@ -88,7 +91,7 @@ func handleCommand(cmd string) Command {
 		return Get
 	case "Del":
 		return Del
-	case "PING":
+	case "PING\r\n":
 		return PING
 	default:
 		return 0

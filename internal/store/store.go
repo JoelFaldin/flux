@@ -34,5 +34,5 @@ func (s *Store) DeleteValue(key string) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	delete(s.data, s.data[key])
+	delete(s.data, key)
 }
