@@ -2,6 +2,7 @@ package server
 
 import (
 	"flux/internal/handler"
+	"flux/internal/store"
 	"fmt"
 	"net"
 	"os"
@@ -17,6 +18,7 @@ func Server() {
 
 	fmt.Println("Server started on port :8080!")
 
+	s := store.NewStore()
 	for {
 		con, err := ln.Accept()
 		if err != nil {
@@ -25,6 +27,6 @@ func Server() {
 		}
 
 		// Goroutine :D
-		go handler.Handler(con)
+		go handler.Handler(con, s)
 	}
 }

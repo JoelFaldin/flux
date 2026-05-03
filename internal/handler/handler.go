@@ -3,13 +3,14 @@ package handler
 import (
 	"bufio"
 	"flux/internal/parser"
+	"flux/internal/store"
 	"log"
 	"net"
 	"strings"
 )
 
 // Each new connection spawns a new gorouting that executes this function.
-func Handler(conn net.Conn) {
+func Handler(conn net.Conn, s *store.Store) {
 	defer conn.Close()
 
 	reader := bufio.NewReader(conn)
@@ -20,10 +21,6 @@ func Handler(conn net.Conn) {
 	}
 
 	res := strings.Split(message, " ")
-	parser.Parser(res[0], conn)
 
-	// response := fmt.Sprintf("ACK: %s\n", ackMsg)
-	// if err != nil {
-	// 	log.Printf("Server write error: %v", err)
-	// }
+	parser.Parser(conn, res, s)
 }
