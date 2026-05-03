@@ -2,7 +2,7 @@ package handler
 
 import (
 	"bufio"
-	"fmt"
+	"flux/internal/parser"
 	"log"
 	"net"
 	"strings"
@@ -19,12 +19,11 @@ func Handler(conn net.Conn) {
 		return
 	}
 
-	ackMsg := strings.ToUpper(strings.TrimSpace(message))
-	response := fmt.Sprintf("ACK: %s\n", ackMsg)
-	r, err := conn.Write([]byte(response))
-	if err != nil {
-		log.Printf("Server write error: %v", err)
-	}
+	res := strings.Split(message, " ")
+	parser.Parser(res[0], conn)
 
-	fmt.Println(r)
+	// response := fmt.Sprintf("ACK: %s\n", ackMsg)
+	// if err != nil {
+	// 	log.Printf("Server write error: %v", err)
+	// }
 }
