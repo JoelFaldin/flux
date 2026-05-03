@@ -30,8 +30,28 @@ func Parser(conn net.Conn, cm []string, s *store.Store) {
 		}
 	}
 
+	// Handle "Set":
+	if res == 0 {
+		if len(cm) < 3 {
+			conn.Write([]byte("Not enough arguments"))
+			return
+		}
+
+		key := cm[1]
+		val := cm[2]
+		s.SetValue(key, val)
+
+		conn.Write([]byte("OK"))
+		return
+	}
+
 	// Handle "Get":
 	if res == 1 {
+		if len(cm) < 2 {
+			conn.Write([]byte("Not enough arguments"))
+			return
+		}
+
 		key := cm[1]
 		before, _, _ := strings.Cut(key, "\r\n")
 		format := before
@@ -46,14 +66,17 @@ func Parser(conn net.Conn, cm []string, s *store.Store) {
 		return
 	}
 
-	// Handle "Set":
-	if res == 0 {
+	// Handle "Del":
+	if res == 2 {
+		if len(cm) < 2 {
+			conn.Write([]byte("Not enough arguments"))
+			return
+		}
+
 		key := cm[1]
-		val := cm[2]
-		s.SetValue(key, val)
+		s.DeleteValue(key)
 
 		conn.Write([]byte("OK"))
-		return
 	}
 }
 

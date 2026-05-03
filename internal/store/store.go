@@ -29,3 +29,10 @@ func (s *Store) GetValue(key string) (string, bool) {
 	val, ok := s.data[key]
 	return val, ok
 }
+
+func (s *Store) DeleteValue(key string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	delete(s.data, s.data[key])
+}
