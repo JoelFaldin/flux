@@ -46,7 +46,7 @@ func (s *Store) DeleteValue(key string) {
 	delete(s.data, key)
 }
 
-func (s *Store) SetTemporalValue(key, value string) {
+func (s *Store) SetTemporalValue(key, value string, t time.Duration) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -54,7 +54,25 @@ func (s *Store) SetTemporalValue(key, value string) {
 	temp.value = value
 	s.data[key] = temp
 
-	expiration := time.Now().Add(10 * time.Second)
+	expiration := time.Now().Add(t * time.Second)
 	temp.expiresAt = &expiration
 	s.data[key] = temp
+}
+
+func (s *Store) StartCleaner(interval time.Duration) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	go func() {
+		ticker := time.NewTicker(interval * time.Second)
+		defer ticker.Stop()
+
+		for range ticker.C {
+			for key, value := range s.data {
+				if time.Now().After(*value.expiresAt) {
+					delete(s.data, key)
+				}
+			}
+		}
+	}()
 }

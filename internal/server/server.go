@@ -19,6 +19,8 @@ func Server() {
 	fmt.Println("Server started on port :8080!")
 
 	s := store.NewStore()
+	s.StartCleaner(10)
+
 	for {
 		con, err := ln.Accept()
 		if err != nil {

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 	"strings"
+	"time"
 
 	"flux/internal/store"
 )
@@ -41,7 +42,16 @@ func Parser(conn net.Conn, cm []string, s *store.Store) {
 
 			key := cm[1]
 			val := cm[2]
-			s.SetTemporalValue(key, val)
+
+			before, _, _ := strings.Cut(cm[4], "\r\n")
+			format := fmt.Sprintf("%ss", before)
+
+			res, err := time.ParseDuration(format)
+			if err != nil {
+				conn.Write([]byte("Error: invalid duration"))
+			}
+
+			s.SetTemporalValue(key, val, res)
 		}
 
 		key := cm[1]
