@@ -10,6 +10,7 @@ The idea of the project is to set up a server that listen to port `8080`, and la
 2. `Get`
 3. `Del`
 4. `PING`
+5. `Set name val EX 10`
 
 ## Project structure
 
@@ -19,9 +20,11 @@ flux/
 ├── main_test.go     # Simple test file
 ├── internal/        # App internal logic
 |   ├── handler/     # Read the request
+|   ├── loader/      # Load yaml data
 |   ├── parser/      # Decide what to do with each action
 |   ├── server/      # Configures and starts the server
 |   ├── store/       # Store a key-value variable
+├── data.yaml
 ├── go.mod
 ├── README.md
 ```
@@ -37,6 +40,7 @@ flux/
 1. Clone the repo with `git clone`.
 2. Run `go install .`.
 3. Start the main server with `go run .\main.go`.
+    * Use a custom port with the flag `--port=3000`.
 4. In a new terminal, set a value:
 ```
 echo "Set test 23" | ncat -C localhost 8080
@@ -60,5 +64,10 @@ OK
 echo "PING" | ncat -C localhost 8080
 PONG
 ```
+
+8. Set a value with expiration date:
+```
+echo "Set test1 23 EX 10" | ncat -C localhost 8080
+``` 
 
 ## Thats all, folks! Thanks for visiting!!

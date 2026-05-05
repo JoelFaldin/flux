@@ -1,6 +1,7 @@
 package store
 
 import (
+	"flux/internal/loader"
 	"sync"
 	"time"
 )
@@ -15,10 +16,21 @@ type Store struct {
 	data map[string]entry
 }
 
-func NewStore() *Store {
-	return &Store{
+func NewStore(data *loader.Data) *Store {
+	s := &Store{
 		data: make(map[string]entry),
 	}
+
+	for k, v := range data.Storage {
+		newEntry := entry{
+			value:     v,
+			expiresAt: nil,
+		}
+
+		s.data[k] = newEntry
+	}
+
+	return s
 }
 
 func (s *Store) SetValue(key, value string) {
@@ -69,7 +81,7 @@ func (s *Store) StartCleaner(interval time.Duration) {
 
 		for range ticker.C {
 			for key, value := range s.data {
-				if time.Now().After(*value.expiresAt) {
+				if value.expiresAt != nil && time.Now().After(*value.expiresAt) {
 					delete(s.data, key)
 				}
 			}

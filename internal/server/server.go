@@ -2,6 +2,7 @@ package server
 
 import (
 	"flux/internal/handler"
+	"flux/internal/loader"
 	"flux/internal/store"
 	"fmt"
 	"net"
@@ -26,7 +27,9 @@ func Server(flg string) {
 
 	fmt.Printf("Server started on port :%s!\n", port)
 
-	s := store.NewStore()
+	data := loader.LoadData()
+	s := store.NewStore(data)
+
 	s.StartCleaner(10)
 
 	for {
