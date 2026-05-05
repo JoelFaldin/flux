@@ -1,7 +1,13 @@
 package main
 
-import "flux/internal/server"
+import (
+	"flag"
+	"flux/internal/server"
+)
 
 func main() {
-	server.Server()
+	flg := flag.String("port", "", "port for the server")
+	flag.Parse()
+
+	server.Server(*flg)
 }

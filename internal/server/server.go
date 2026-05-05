@@ -8,15 +8,23 @@ import (
 	"os"
 )
 
-func Server() {
-	ln, err := net.Listen("tcp", "127.0.0.1:8080")
+func Server(flg string) {
+	var port string
+	if flg != "" {
+		port = flg
+	} else {
+		port = "8080"
+	}
+
+	p := fmt.Sprintf("127.0.0.1:%s", port)
+	ln, err := net.Listen("tcp", p)
 	if err != nil {
 		fmt.Println("Error starting server", err)
 		os.Exit(1)
 	}
 	defer ln.Close()
 
-	fmt.Println("Server started on port :8080!")
+	fmt.Printf("Server started on port :%s!\n", port)
 
 	s := store.NewStore()
 	s.StartCleaner(10)
