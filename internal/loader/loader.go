@@ -2,6 +2,7 @@ package loader
 
 import (
 	"fmt"
+	"maps"
 	"os"
 
 	"gopkg.in/yaml.v3"
@@ -27,4 +28,20 @@ func LoadData() *Data {
 	}
 
 	return &data
+}
+
+func WriteData(entry Data, values map[string]string) {
+	maps.Copy(entry.Storage, values)
+
+	yamlData, err := yaml.Marshal(&entry)
+	if err != nil {
+		fmt.Println("Error marshaling yaml data:", err)
+		os.Exit(1)
+	}
+
+	err = os.WriteFile("data.yaml", yamlData, 0644)
+	if err != nil {
+		fmt.Println("Error writing yaml file:", err)
+		os.Exit(1)
+	}
 }

@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"flux/internal/loader"
 	"flux/internal/store"
 )
 
@@ -34,6 +35,7 @@ func Parser(conn net.Conn, cm []string, s *store.Store) {
 			return
 		}
 
+		// Checking for temporal value:
 		if len(cm) == 5 {
 			if cm[3] != "EX" {
 				conn.Write([]byte("Error: invalid action on SET"))
@@ -56,7 +58,11 @@ func Parser(conn net.Conn, cm []string, s *store.Store) {
 
 		key := cm[1]
 		val := cm[2]
-		s.SetValue(key, val)
+		cutVal, _, _ := strings.Cut(val, "\r\n")
+		s.SetValue(key, cutVal)
+
+		// Writting to yaml:
+		loader.WriteData(loader.Data{Storage: map[string]string{key: val}}, s.GetAllValues())
 
 		conn.Write([]byte("OK\r\n"))
 		return

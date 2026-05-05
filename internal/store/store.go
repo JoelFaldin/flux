@@ -88,3 +88,15 @@ func (s *Store) StartCleaner(interval time.Duration) {
 		}
 	}()
 }
+
+func (s *Store) GetAllValues() map[string]string {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	result := make(map[string]string)
+	for key, value := range s.data {
+		result[key] = value.value
+	}
+
+	return result
+}
