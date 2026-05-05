@@ -20,21 +20,28 @@ const (
 func Parser(conn net.Conn, cm []string, s *store.Store) {
 	res := handleCommand(cm[0])
 
-	// Handle health check:
-	if res == 3 {
-		response := "PONG"
-
-		_, err := conn.Write([]byte(response))
-		if err != nil {
-			fmt.Printf("Server write error: %v", err)
-		}
+	// Handle default value (-1):
+	if res == -1 {
+		r := fmt.Sprintf("Error: unknown command '%s'", cm[0])
+		conn.Write([]byte(r))
 	}
 
 	// Handle "Set":
 	if res == 0 {
 		if len(cm) < 3 {
-			conn.Write([]byte("Not enough arguments"))
+			conn.Write([]byte("Error: wrong number of arguments for SET"))
 			return
+		}
+
+		if len(cm) == 5 {
+			if cm[3] != "EX" {
+				conn.Write([]byte("Error: invalid action on SET"))
+				return
+			}
+
+			key := cm[1]
+			val := cm[2]
+			s.SetTemporalValue(key, val)
 		}
 
 		key := cm[1]
@@ -48,7 +55,7 @@ func Parser(conn net.Conn, cm []string, s *store.Store) {
 	// Handle "Get":
 	if res == 1 {
 		if len(cm) < 2 {
-			conn.Write([]byte("Not enough arguments"))
+			conn.Write([]byte("Error: wrong number of arguments for GET"))
 			return
 		}
 
@@ -69,7 +76,7 @@ func Parser(conn net.Conn, cm []string, s *store.Store) {
 	// Handle "Del":
 	if res == 2 {
 		if len(cm) < 2 {
-			conn.Write([]byte("Not enough arguments"))
+			conn.Write([]byte("Error: wrong number of arguments for DEL"))
 			return
 		}
 
@@ -80,6 +87,16 @@ func Parser(conn net.Conn, cm []string, s *store.Store) {
 		s.DeleteValue(format)
 
 		conn.Write([]byte("OK\r\n"))
+	}
+
+	// Handle health check:
+	if res == 3 {
+		response := "PONG"
+
+		_, err := conn.Write([]byte(response))
+		if err != nil {
+			fmt.Printf("Server write error: %v", err)
+		}
 	}
 }
 
@@ -94,6 +111,6 @@ func handleCommand(cmd string) Command {
 	case "PING\r\n":
 		return PING
 	default:
-		return 0
+		return -1
 	}
 }
