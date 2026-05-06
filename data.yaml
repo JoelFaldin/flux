@@ -1,2 +1,4 @@
 storage:
-  test1: "25"
+  test2:
+    value: "46"
+    expires_at: null

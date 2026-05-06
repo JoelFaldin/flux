@@ -28,7 +28,7 @@ func Server(flg string) {
 	fmt.Printf("Server started on port :%s!\n", port)
 
 	data := loader.LoadData()
-	s := store.NewStore(data)
+	s := store.NewStore(*data)
 
 	s.StartCleaner(10)
 
@@ -40,6 +40,6 @@ func Server(flg string) {
 		}
 
 		// Goroutine :D
-		go handler.Handler(con, s)
+		go handler.Handler(con, s, data)
 	}
 }

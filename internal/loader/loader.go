@@ -1,25 +1,21 @@
 package loader
 
 import (
+	"flux/internal/models"
 	"fmt"
-	"maps"
 	"os"
 
 	"gopkg.in/yaml.v3"
 )
 
-type Data struct {
-	Storage map[string]string `yaml:"storage"`
-}
-
-func LoadData() *Data {
+func LoadData() *models.Data {
 	file, err := os.ReadFile("data.yaml")
 	if err != nil {
 		fmt.Println("Error opening yaml file:", err)
 		os.Exit(1)
 	}
 
-	var data Data
+	var data models.Data
 
 	err = yaml.Unmarshal(file, &data)
 	if err != nil {
@@ -30,16 +26,22 @@ func LoadData() *Data {
 	return &data
 }
 
-func WriteData(entry Data, values map[string]string) {
-	maps.Copy(entry.Storage, values)
+func WriteData(cfg *models.Data, values map[string]any) {
+	if cfg.Storage == nil {
+		cfg.Storage = make(map[string]models.Entry)
+	}
 
-	yamlData, err := yaml.Marshal(&entry)
+	for k, v := range values {
+		cfg.Storage[k] = models.Entry{Value: v}
+	}
+
+	data, err := yaml.Marshal(cfg)
 	if err != nil {
 		fmt.Println("Error marshaling yaml data:", err)
 		os.Exit(1)
 	}
 
-	err = os.WriteFile("data.yaml", yamlData, 0644)
+	err = os.WriteFile("data.yaml", data, 0644)
 	if err != nil {
 		fmt.Println("Error writing yaml file:", err)
 		os.Exit(1)

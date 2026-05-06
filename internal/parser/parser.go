@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"flux/internal/loader"
+	"flux/internal/models"
 	"flux/internal/store"
 )
 
@@ -17,9 +18,10 @@ const (
 	Get
 	Del
 	PING
+	LPUSH
 )
 
-func Parser(conn net.Conn, cm []string, s *store.Store) {
+func Parser(conn net.Conn, cm []string, s *store.Store, globalConfig *models.Data) {
 	res := handleCommand(cm[0])
 
 	// Handle default value (-1):
@@ -58,11 +60,12 @@ func Parser(conn net.Conn, cm []string, s *store.Store) {
 
 		key := cm[1]
 		val := cm[2]
-		cutVal, _, _ := strings.Cut(val, "\r\n")
+		cutVal := strings.TrimSpace(val)
+
 		s.SetValue(key, cutVal)
 
 		// Writting to yaml:
-		loader.WriteData(loader.Data{Storage: map[string]string{key: val}}, s.GetAllValues())
+		loader.WriteData(globalConfig, s.GetAllValues())
 
 		conn.Write([]byte("OK\r\n"))
 		return
@@ -76,8 +79,7 @@ func Parser(conn net.Conn, cm []string, s *store.Store) {
 		}
 
 		key := cm[1]
-		before, _, _ := strings.Cut(key, "\r\n")
-		format := before
+		format := strings.TrimSpace(key)
 
 		val, ok := s.GetValue(format)
 		if !ok {
@@ -114,6 +116,21 @@ func Parser(conn net.Conn, cm []string, s *store.Store) {
 			fmt.Printf("Server write error: %v", err)
 		}
 	}
+
+	// Handle LPUSH:
+	if res == 4 {
+		if len(cm) < 3 {
+			conn.Write([]byte("Error: wrong number of arguments for LPUSH"))
+			return
+		}
+
+		key := cm[1]
+		val := cm[2]
+		cutVal, _, _ := strings.Cut(val, "\r\n")
+		s.LPush(key, cutVal)
+
+		conn.Write([]byte("OK\r\n"))
+	}
 }
 
 func handleCommand(cmd string) Command {
@@ -126,6 +143,8 @@ func handleCommand(cmd string) Command {
 		return Del
 	case "PING\r\n":
 		return PING
+	case "LPUSH":
+		return LPUSH
 	default:
 		return -1
 	}

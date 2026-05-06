@@ -1,30 +1,26 @@
 package store
 
 import (
-	"flux/internal/loader"
+	"flux/internal/models"
+	"fmt"
 	"sync"
 	"time"
 )
 
-type entry struct {
-	value     string
-	expiresAt *time.Time
-}
-
 type Store struct {
 	mu   sync.RWMutex
-	data map[string]entry
+	data map[string]models.Entry
 }
 
-func NewStore(data *loader.Data) *Store {
+func NewStore(data models.Data) *Store {
 	s := &Store{
-		data: make(map[string]entry),
+		data: make(map[string]models.Entry),
 	}
 
 	for k, v := range data.Storage {
-		newEntry := entry{
-			value:     v,
-			expiresAt: nil,
+		newEntry := models.Entry{
+			Value:     v.Value,
+			ExpiresAt: v.ExpiresAt,
 		}
 
 		s.data[k] = newEntry
@@ -38,7 +34,7 @@ func (s *Store) SetValue(key, value string) {
 	defer s.mu.Unlock()
 
 	temp := s.data[key]
-	temp.value = value
+	temp.Value = value
 	s.data[key] = temp
 }
 
@@ -47,8 +43,13 @@ func (s *Store) GetValue(key string) (string, bool) {
 	defer s.mu.RUnlock()
 
 	val, ok := s.data[key]
+	entry, isString := val.Value.(string)
 
-	return val.value, ok
+	if isString {
+		return entry, ok
+	}
+
+	return fmt.Sprintf("%v", val.Value), ok
 }
 
 func (s *Store) DeleteValue(key string) {
@@ -63,11 +64,11 @@ func (s *Store) SetTemporalValue(key, value string, t time.Duration) {
 	defer s.mu.Unlock()
 
 	temp := s.data[key]
-	temp.value = value
+	temp.Value = value
 	s.data[key] = temp
 
 	expiration := time.Now().Add(t * time.Second)
-	temp.expiresAt = &expiration
+	temp.ExpiresAt = &expiration
 	s.data[key] = temp
 }
 
@@ -81,7 +82,7 @@ func (s *Store) StartCleaner(interval time.Duration) {
 
 		for range ticker.C {
 			for key, value := range s.data {
-				if value.expiresAt != nil && time.Now().After(*value.expiresAt) {
+				if value.ExpiresAt != nil && time.Now().After(*value.ExpiresAt) {
 					delete(s.data, key)
 				}
 			}
@@ -89,14 +90,23 @@ func (s *Store) StartCleaner(interval time.Duration) {
 	}()
 }
 
-func (s *Store) GetAllValues() map[string]string {
+func (s *Store) GetAllValues() map[string]any {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	result := make(map[string]string)
-	for key, value := range s.data {
-		result[key] = value.value
+	result := make(map[string]any)
+
+	// Type assertion:
+	for key, entry := range s.data {
+		result[key] = entry.Value
 	}
 
 	return result
+}
+
+func (s *Store) LPush(key, value string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	// fmt.Printf("LPUSH %s %s\n", key, value)
 }

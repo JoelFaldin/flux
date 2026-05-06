@@ -2,6 +2,7 @@ package handler
 
 import (
 	"bufio"
+	"flux/internal/models"
 	"flux/internal/parser"
 	"flux/internal/store"
 	"log"
@@ -10,7 +11,7 @@ import (
 )
 
 // Each new connection spawns a new gorouting that executes this function.
-func Handler(conn net.Conn, s *store.Store) {
+func Handler(conn net.Conn, s *store.Store, conf *models.Data) {
 	defer conn.Close()
 
 	reader := bufio.NewReader(conn)
@@ -22,5 +23,5 @@ func Handler(conn net.Conn, s *store.Store) {
 
 	res := strings.Split(message, " ")
 
-	parser.Parser(conn, res, s)
+	parser.Parser(conn, res, s, conf)
 }
