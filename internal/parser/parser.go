@@ -86,7 +86,23 @@ func Parser(conn net.Conn, cm []string, s *store.Store, globalConfig *models.Dat
 			conn.Write([]byte("(nil)"))
 		}
 
-		conn.Write([]byte(val))
+		// Type switch:
+		switch v := val.(type) {
+		case string:
+			conn.Write([]byte(v + "\r\n"))
+		case []string:
+			result := strings.Join(v, " ")
+			conn.Write([]byte("[" + result + "]\r\n"))
+		case []any:
+			var strItems []string
+			for _, item := range v {
+				strItems = append(strItems, fmt.Sprintf("%v", item))
+			}
+
+			conn.Write([]byte("[" + strings.Join(strItems, ", ") + "]\r\n"))
+		default:
+			fmt.Fprintf(conn, "%v\r\n", v)
+		}
 
 		return
 	}
@@ -126,8 +142,12 @@ func Parser(conn net.Conn, cm []string, s *store.Store, globalConfig *models.Dat
 
 		key := cm[1]
 		val := cm[2]
-		cutVal, _, _ := strings.Cut(val, "\r\n")
-		s.LPush(key, cutVal)
+		cutVal := strings.TrimSpace(val)
+
+		var sl []string
+		sl = append(sl, cutVal)
+
+		s.LPush(key, sl)
 
 		conn.Write([]byte("OK\r\n"))
 	}

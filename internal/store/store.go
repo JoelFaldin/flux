@@ -29,7 +29,7 @@ func NewStore(data models.Data) *Store {
 	return s
 }
 
-func (s *Store) SetValue(key, value string) {
+func (s *Store) SetValue(key string, value any) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -38,7 +38,7 @@ func (s *Store) SetValue(key, value string) {
 	s.data[key] = temp
 }
 
-func (s *Store) GetValue(key string) (string, bool) {
+func (s *Store) GetValue(key string) (any, bool) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
@@ -104,9 +104,41 @@ func (s *Store) GetAllValues() map[string]any {
 	return result
 }
 
-func (s *Store) LPush(key, value string) {
+func (s *Store) LPush(key string, items []string) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	// fmt.Printf("LPUSH %s %s\n", key, value)
+	var combined []any
+
+	for _, item := range items {
+		combined = append(combined, item)
+	}
+
+	if entry, exists := s.data[key]; exists {
+		if existingList, ok := entry.Value.([]any); ok {
+			combined = append(combined, existingList...)
+		} else if existingList, ok := entry.Value.([]string); ok {
+			for _, v := range existingList {
+				combined = append(combined, v)
+			}
+		}
+	}
+
+	s.set(key, combined)
+}
+
+func (s *Store) set(key string, cm any) {
+	s.data[key] = models.Entry{
+		Value: cm,
+	}
+}
+
+func convertToAny(in []string) []any {
+	out := make([]any, len(in))
+
+	for i, v := range in {
+		out[i] = v
+	}
+
+	return out
 }
