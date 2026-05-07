@@ -30,7 +30,7 @@ func Server(flg string) {
 	data := loader.LoadData()
 	s := store.NewStore(*data)
 
-	s.StartCleaner(10)
+	s.StartCleaner(data, 10)
 
 	for {
 		con, err := ln.Accept()

@@ -1,6 +1,7 @@
 package store
 
 import (
+	"flux/internal/loader"
 	"flux/internal/models"
 	"fmt"
 	"sync"
@@ -70,7 +71,7 @@ func (s *Store) SetTemporalValue(key, value string, t time.Duration) {
 	s.data[key] = temp
 }
 
-func (s *Store) StartCleaner(interval time.Duration) {
+func (s *Store) StartCleaner(globalConfig *models.Data, interval time.Duration) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -84,6 +85,9 @@ func (s *Store) StartCleaner(interval time.Duration) {
 					delete(s.data, key)
 				}
 			}
+
+			r := s.GetAllValues()
+			loader.WriteData(globalConfig, r)
 		}
 	}()
 }
