@@ -149,6 +149,9 @@ func Parser(conn net.Conn, cm []string, s *store.Store, globalConfig *models.Dat
 
 		s.LPush(key, sl)
 
+		d := s.GetAllValues()
+		loader.WriteData(globalConfig, d)
+
 		conn.Write([]byte("OK\r\n"))
 	}
 }

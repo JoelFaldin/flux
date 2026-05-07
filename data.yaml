@@ -1,7 +1,13 @@
 storage:
-  test2:
-    value:
-      - item1
-      - item2
-      - item3
-    expires_at: null
+    test2:
+        value:
+            - item1
+            - item2
+            - item3
+        expires_at: null
+    test4:
+        value:
+            - "23"
+            - "22"
+            - "21"
+        expires_at: null
