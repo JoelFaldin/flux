@@ -115,10 +115,13 @@ func Parser(conn net.Conn, cm []string, s *store.Store, globalConfig *models.Dat
 		}
 
 		key := cm[1]
-		before, _, _ := strings.Cut(key, "\r\n")
+		before := strings.TrimSpace(key)
 		format := before
 
 		s.DeleteValue(format)
+
+		// Writing without the deleted value:
+		loader.WriteData(globalConfig, s.GetAllValues())
 
 		conn.Write([]byte("OK\r\n"))
 	}

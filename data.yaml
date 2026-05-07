@@ -1,16 +1,7 @@
 storage:
-    test1:
-        value: yay
-        expires_at: 2026-05-06T23:42:14.8300048-04:00
-    test2:
-        value: miku
-        expires_at: null
-    test3:
-        value: teto
-        expires_at: null
-    test4:
-        value:
-            - "23"
-            - "22"
-            - "21"
-        expires_at: null
+  test4:
+    value:
+      - "23"
+      - "22"
+      - "21"
+    expires_at: null
