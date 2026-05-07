@@ -11,6 +11,7 @@ The idea of the project is to set up a server that listen to port `8080`, and la
 3. `Del`
 4. `PING`
 5. `Set name val EX 10`
+6. `LPUSH name val`
 
 ## Project structure
 
@@ -21,6 +22,7 @@ flux/
 ├── internal/        # App internal logic
 |   ├── handler/     # Read the request
 |   ├── loader/      # Load yaml data
+|   ├── models/      # Structs used across the project
 |   ├── parser/      # Decide what to do with each action
 |   ├── server/      # Configures and starts the server
 |   ├── store/       # Store a key-value variable
@@ -68,6 +70,14 @@ PONG
 8. Set a value with expiration date:
 ```
 echo "Set test1 23 EX 10" | ncat -C localhost 8080
-``` 
+```
+
+9. Add items to slice:
+```
+echo "LPUSH test1 val" | ncat -C localhost 8080
+```
+
+This will store `val` in an slice. Run the same command changing `val` to add more items to the slice.
+Then, you can just run the `Get` command, and you will get the full slice.
 
 ## Thats all, folks! Thanks for visiting!!
