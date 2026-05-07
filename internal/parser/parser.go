@@ -47,7 +47,7 @@ func Parser(conn net.Conn, cm []string, s *store.Store, globalConfig *models.Dat
 			key := cm[1]
 			val := cm[2]
 
-			before, _, _ := strings.Cut(cm[4], "\r\n")
+			before := strings.TrimSpace(cm[4])
 			format := fmt.Sprintf("%ss", before)
 
 			res, err := time.ParseDuration(format)
@@ -56,13 +56,13 @@ func Parser(conn net.Conn, cm []string, s *store.Store, globalConfig *models.Dat
 			}
 
 			s.SetTemporalValue(key, val, res)
+		} else {
+			key := cm[1]
+			val := cm[2]
+			cutVal := strings.TrimSpace(val)
+
+			s.SetValue(key, cutVal)
 		}
-
-		key := cm[1]
-		val := cm[2]
-		cutVal := strings.TrimSpace(val)
-
-		s.SetValue(key, cutVal)
 
 		// Writting to yaml:
 		loader.WriteData(globalConfig, s.GetAllValues())

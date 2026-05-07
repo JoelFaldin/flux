@@ -33,9 +33,7 @@ func (s *Store) SetValue(key string, value any) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	temp := s.data[key]
-	temp.Value = value
-	s.data[key] = temp
+	s.set(key, value)
 }
 
 func (s *Store) GetValue(key string) (any, bool) {
@@ -67,7 +65,7 @@ func (s *Store) SetTemporalValue(key, value string, t time.Duration) {
 	temp.Value = value
 	s.data[key] = temp
 
-	expiration := time.Now().Add(t * time.Second)
+	expiration := time.Now().Add(t)
 	temp.ExpiresAt = &expiration
 	s.data[key] = temp
 }
@@ -90,15 +88,17 @@ func (s *Store) StartCleaner(interval time.Duration) {
 	}()
 }
 
-func (s *Store) GetAllValues() map[string]any {
+func (s *Store) GetAllValues() map[string]models.Entry {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	result := make(map[string]any)
+	result := make(map[string]models.Entry)
 
-	// Type assertion:
 	for key, entry := range s.data {
-		result[key] = entry.Value
+		result[key] = models.Entry{
+			Value:     entry.Value,
+			ExpiresAt: entry.ExpiresAt,
+		}
 	}
 
 	return result

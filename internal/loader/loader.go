@@ -3,6 +3,7 @@ package loader
 import (
 	"flux/internal/models"
 	"fmt"
+	"maps"
 	"os"
 
 	"gopkg.in/yaml.v3"
@@ -26,14 +27,12 @@ func LoadData() *models.Data {
 	return &data
 }
 
-func WriteData(cfg *models.Data, values map[string]any) {
+func WriteData(cfg *models.Data, values map[string]models.Entry) {
 	if cfg.Storage == nil {
 		cfg.Storage = make(map[string]models.Entry)
 	}
 
-	for k, v := range values {
-		cfg.Storage[k] = models.Entry{Value: v}
-	}
+	maps.Copy(cfg.Storage, values)
 
 	data, err := yaml.Marshal(cfg)
 	if err != nil {
